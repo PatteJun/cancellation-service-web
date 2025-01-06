@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import {
   Command,
@@ -9,9 +9,13 @@ import {
   CommandInput,
   CommandList,
 } from "@/components/ui/command";
-import { mockProviders, mockCategories, Provider } from "@/lib/mock-data";
 import { CategoryFilter } from "./provider-search/category-filter";
 import { ProviderItem } from "./provider-search/provider-item";
+import { getProviders, getCategories } from "@/lib/supabase/providers";
+import type { Provider } from "@/lib/supabase/providers";
+import type { Database } from "@/lib/supabase/types";
+
+type Category = Database["public"]["Tables"]["categories"]["Row"];
 
 interface CompanySearchProps {
   onSelectCompany: (provider: Provider) => void;
@@ -20,18 +24,57 @@ interface CompanySearchProps {
 export default function CompanySearch({ onSelectCompany }: CompanySearchProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredProviders = mockProviders.filter((provider) => {
-    const matchesSearch = provider.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    
-    if (!selectedCategory) return matchesSearch;
-    
-    // In the mock data we don't have the provider-category relationships yet
-    // This will be replaced with proper filtering when we implement Supabase
-    return matchesSearch;
-  });
+  useEffect(() => {
+    const loadInitialData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const [providersData, categoriesData] = await Promise.all([
+          getProviders(),
+          getCategories()
+        ]);
+        setProviders(providersData);
+        setCategories(categoriesData);
+      } catch (err) {
+        setError("Failed to load providers and categories");
+        console.error("Error loading initial data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadInitialData();
+  }, []);
+
+  useEffect(() => {
+    const loadProviders = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await getProviders(searchQuery);
+        setProviders(data);
+      } catch (err) {
+        setError("Failed to search providers");
+        console.error("Error searching providers:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const debounceTimer = setTimeout(loadProviders, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery]);
+
+  const filteredProviders = selectedCategory
+    ? providers.filter(provider => 
+        provider.categories?.some(category => category.id === selectedCategory)
+      )
+    : providers;
 
   return (
     <Card className="p-6">
@@ -44,7 +87,7 @@ export default function CompanySearch({ onSelectCompany }: CompanySearchProps) {
         </div>
 
         <CategoryFilter
-          categories={mockCategories}
+          categories={categories}
           selectedCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
         />
@@ -56,7 +99,15 @@ export default function CompanySearch({ onSelectCompany }: CompanySearchProps) {
             onValueChange={setSearchQuery}
           />
           <CommandList>
-            <CommandEmpty>No providers found.</CommandEmpty>
+            <CommandEmpty>
+              {isLoading ? (
+                "Loading..."
+              ) : error ? (
+                <span className="text-destructive">{error}</span>
+              ) : (
+                "No providers found."
+              )}
+            </CommandEmpty>
             <CommandGroup heading="Providers">
               {filteredProviders.map((provider) => (
                 <ProviderItem

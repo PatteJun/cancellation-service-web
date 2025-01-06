@@ -2,7 +2,7 @@
 
 import { Search } from "lucide-react";
 import { CommandItem } from "@/components/ui/command";
-import { Provider } from "@/lib/mock-data";
+import type { Provider } from "@/lib/supabase/providers";
 
 interface ProviderItemProps {
   provider: Provider;
@@ -13,7 +13,7 @@ export function ProviderItem({ provider, onSelect }: ProviderItemProps) {
   return (
     <CommandItem
       key={provider.id}
-      value={provider.name}
+      value={provider.name || ''}
       onSelect={() => onSelect(provider)}
       className="cursor-pointer"
     >

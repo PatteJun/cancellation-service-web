@@ -1,7 +1,9 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Category } from "@/lib/mock-data";
+import type { Database } from "@/lib/supabase/types";
+
+type Category = Database["public"]["Tables"]["categories"]["Row"];
 
 interface CategoryFilterProps {
   categories: Category[];
