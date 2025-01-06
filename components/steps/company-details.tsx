@@ -1,10 +1,10 @@
 "use client";
 
-import { Provider } from "@/lib/mock-data";
+import type { Provider } from "@/lib/supabase/providers";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { CancellationSteps } from "./provider-details/cancellation-steps";
 import { RequiredInformation } from "./provider-details/required-information";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface CompanyDetailsProps {
   company: Provider;
@@ -20,6 +20,8 @@ export default function CompanyDetails({ company, onNext }: CompanyDetailsProps)
     company.postal_code,
     company.country
   ].filter(Boolean).join(", ");
+
+  const faqs = company.faqs as Array<{ question: string; answer: string }> || [];
 
   return (
     <div className="space-y-6">
@@ -38,9 +40,9 @@ export default function CompanyDetails({ company, onNext }: CompanyDetailsProps)
         </CardContent>
       </Card>
 
-      <CancellationSteps steps={company.cancellation_steps} />
+      <CancellationSteps steps={company.cancellation_steps || []} />
       
-      <RequiredInformation fields={company.required_information.fields} />
+      <RequiredInformation fields={(company.required_information as { fields: Array<{ name: string; description: string; required: boolean }> })?.fields || []} />
 
       <Card>
         <CardHeader>
@@ -48,7 +50,7 @@ export default function CompanyDetails({ company, onNext }: CompanyDetailsProps)
         </CardHeader>
         <CardContent>
           <Accordion type="single" collapsible className="w-full">
-            {company.faqs.map((faq, index) => (
+            {faqs.map((faq, index) => (
               <AccordionItem key={index} value={`item-${index}`}>
                 <AccordionTrigger>{faq.question}</AccordionTrigger>
                 <AccordionContent>{faq.answer}</AccordionContent>

@@ -3,12 +3,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Info } from "lucide-react";
 
+interface RequiredInformationField {
+  name: string;
+  description: string;
+  required: boolean;
+}
+
 interface RequiredInformationProps {
-  fields: Array<{
-    name: string;
-    description: string;
-    required: boolean;
-  }>;
+  fields: RequiredInformationField[];
 }
 
 export function RequiredInformation({ fields }: RequiredInformationProps) {
