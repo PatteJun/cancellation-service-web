@@ -1,67 +1,69 @@
 "use client";
 
 import { useState } from "react";
-import { Search } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import {
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
-  CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { mockCompanies } from "@/lib/mock-data";
+import { mockProviders, mockCategories, Provider } from "@/lib/mock-data";
+import { CategoryFilter } from "./provider-search/category-filter";
+import { ProviderItem } from "./provider-search/provider-item";
 
 interface CompanySearchProps {
-  onSelectCompany: (company: Company) => void;
+  onSelectCompany: (provider: Provider) => void;
 }
 
 export default function CompanySearch({ onSelectCompany }: CompanySearchProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const filteredCompanies = mockCompanies.filter((company) =>
-    company.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProviders = mockProviders.filter((provider) => {
+    const matchesSearch = provider.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    
+    if (!selectedCategory) return matchesSearch;
+    
+    // In the mock data we don't have the provider-category relationships yet
+    // This will be replaced with proper filtering when we implement Supabase
+    return matchesSearch;
+  });
 
   return (
     <Card className="p-6">
       <div className="space-y-4">
         <div className="space-y-2">
-          <h2 className="text-2xl font-semibold">Search for a Company</h2>
+          <h2 className="text-2xl font-semibold">Search for a Provider</h2>
           <p className="text-muted-foreground">
-            Enter the company name you want to cancel your subscription with
+            Enter the provider name you want to cancel your subscription with
           </p>
         </div>
 
+        <CategoryFilter
+          categories={mockCategories}
+          selectedCategory={selectedCategory}
+          onSelectCategory={setSelectedCategory}
+        />
+
         <Command className="rounded-lg border shadow-md">
           <CommandInput
-            placeholder="Search companies..."
+            placeholder="Search providers..."
             value={searchQuery}
             onValueChange={setSearchQuery}
           />
           <CommandList>
-            <CommandEmpty>No companies found.</CommandEmpty>
-            <CommandGroup heading="Companies">
-              {filteredCompanies.map((company) => (
-                <CommandItem
-                  key={company.id}
-                  value={company.name}
-                  onSelect={() => onSelectCompany(company)}
-                  className="cursor-pointer"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-muted p-2 rounded-full">
-                      <Search className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="font-medium">{company.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {company.industry}
-                      </p>
-                    </div>
-                  </div>
-                </CommandItem>
+            <CommandEmpty>No providers found.</CommandEmpty>
+            <CommandGroup heading="Providers">
+              {filteredProviders.map((provider) => (
+                <ProviderItem
+                  key={provider.id}
+                  provider={provider}
+                  onSelect={onSelectCompany}
+                />
               ))}
             </CommandGroup>
           </CommandList>

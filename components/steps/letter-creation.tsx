@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
+import { Provider, FormData } from "@/lib/mock-data";
+import { FormFields } from "./letter-creation/form-fields";
 
 interface LetterCreationProps {
-  company: Company;
+  company: Provider;
   formData: FormData;
   setFormData: (data: FormData) => void;
 }
@@ -26,6 +26,15 @@ export default function LetterCreation({
   };
 
   const generatePreview = () => {
+    const fullAddress = [
+      company.street,
+      company.address_line_2,
+      company.city,
+      company.state,
+      company.postal_code,
+      company.country
+    ].filter(Boolean).join(", ");
+
     return `
 ${formData.fullName}
 ${formData.address}
@@ -33,19 +42,17 @@ ${formData.address}
 ${new Date().toLocaleDateString()}
 
 ${company.name}
-${company.address}
+${fullAddress}
 
 Dear Sir/Madam,
 
-Re: Cancellation of Subscription (ID: ${formData.subscriptionId})
+Re: Cancellation of Subscription${formData.subscriptionId ? ` (ID: ${formData.subscriptionId})` : ''}
 
-I am writing to formally request the cancellation of my subscription with ${
-      company.name
-    }. Please process this cancellation according to the terms of our agreement.
+I am writing to formally request the cancellation of my subscription with ${company.name}. Please process this cancellation according to the terms of our agreement.
 
 Account Details:
 - Full Name: ${formData.fullName}
-- Subscription ID: ${formData.subscriptionId}
+${formData.subscriptionId ? `- Subscription ID: ${formData.subscriptionId}` : ''}
 
 Please confirm receipt of this cancellation request and provide any necessary instructions for returning equipment or settling final payments.
 
@@ -60,7 +67,7 @@ ${formData.fullName}
     const element = document.createElement("a");
     const file = new Blob([generatePreview()], { type: "text/plain" });
     element.href = URL.createObjectURL(file);
-    element.download = "cancellation-letter.txt";
+    element.download = `${company.name.toLowerCase()}-cancellation-letter.txt`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
@@ -71,38 +78,11 @@ ${formData.fullName}
       <Card className="p-6">
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold">Create Your Cancellation Letter</h2>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
-              <Input
-                id="fullName"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleInputChange}
-                placeholder="John Doe"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="address">Your Address</Label>
-              <Input
-                id="address"
-                name="address"
-                value={formData.address}
-                onChange={handleInputChange}
-                placeholder="123 Main St, City, Country"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="subscriptionId">Subscription ID</Label>
-              <Input
-                id="subscriptionId"
-                name="subscriptionId"
-                value={formData.subscriptionId}
-                onChange={handleInputChange}
-                placeholder="e.g., ACC123456"
-              />
-            </div>
-          </div>
+          <FormFields 
+            provider={company}
+            formData={formData}
+            onChange={handleInputChange}
+          />
         </div>
       </Card>
 

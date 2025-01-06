@@ -1,16 +1,64 @@
-export const mockCompanies: Company[] = [
+export interface Provider {
+  id: string;
+  created_at: string;
+  name: string;
+  street: string;
+  address_line_2: string | null;
+  city: string;
+  state: string;
+  postal_code: string;
+  country: string;
+  cancellation_steps: string[];
+  issues: string[];
+  faqs: Array<{
+    question: string;
+    answer: string;
+  }>;
+  required_information: {
+    fields: Array<{
+      name: string;
+      description: string;
+      required: boolean;
+    }>;
+  };
+  categories?: Category[];
+}
+
+export interface Category {
+  id: string;
+  created_at: string;
+  name: string;
+}
+
+export interface FormData {
+  fullName: string;
+  address: string;
+  subscriptionId: string;
+}
+
+export const mockProviders: Provider[] = [
   {
-    id: 1,
+    id: "123e4567-e89b-12d3-a456-426614174000",
+    created_at: "2024-01-01T00:00:00Z",
     name: "Netflix",
-    industry: "Entertainment",
-    address: "100 Winchester Circle, Los Gatos, CA 95032, USA",
-    email: "support@netflix.com",
-    phone: "1-888-373-8390",
-    cancellationRules: {
-      noticePeriod: "Cancel anytime. Changes take effect at the end of your billing period.",
-      requiredInfo: "Account email and last 4 digits of payment method",
-      confirmationProcess: "Immediate confirmation via email"
-    },
+    street: "100 Winchester Circle",
+    address_line_2: null,
+    city: "Los Gatos",
+    state: "CA",
+    postal_code: "95032",
+    country: "USA",
+    cancellation_steps: [
+      "Sign in to your Netflix account",
+      "Go to Account Settings",
+      "Click on Cancel Membership",
+      "Confirm cancellation"
+    ],
+    issues: [
+      "Billing issues",
+      "Technical problems",
+      "Service quality",
+      "Price increases"
+    ],
     faqs: [
       {
         question: "Will I get a refund for unused time?",
@@ -20,20 +68,49 @@ export const mockCompanies: Company[] = [
         question: "Can I keep watching until the end of my billing period?",
         answer: "Yes, you can continue watching until the end of your current billing period."
       }
-    ]
+    ],
+    required_information: {
+      fields: [
+        {
+          name: "email",
+          description: "Email address associated with your account",
+          required: true
+        },
+        {
+          name: "last_four_digits",
+          description: "Last 4 digits of payment method",
+          required: true
+        },
+        {
+          name: "subscription_id",
+          description: "Your Netflix subscription ID",
+          required: false
+        }
+      ]
+    }
   },
   {
-    id: 2,
+    id: "223e4567-e89b-12d3-a456-426614174001",
+    created_at: "2024-01-01T00:00:00Z",
     name: "Spotify",
-    industry: "Music Streaming",
-    address: "4 World Trade Center, 150 Greenwich Street, 62nd Floor, New York, NY 10007",
-    email: "support@spotify.com",
-    phone: "1-800-SPOTIFY",
-    cancellationRules: {
-      noticePeriod: "Cancel anytime before next billing date",
-      requiredInfo: "Account email and username",
-      confirmationProcess: "Email confirmation within 24 hours"
-    },
+    street: "150 Greenwich Street",
+    address_line_2: "62nd Floor",
+    city: "New York",
+    state: "NY",
+    postal_code: "10007",
+    country: "USA",
+    cancellation_steps: [
+      "Go to your account page",
+      "Select Subscription",
+      "Click Change or Cancel",
+      "Follow the cancellation flow"
+    ],
+    issues: [
+      "Payment problems",
+      "Account access",
+      "Subscription changes",
+      "Feature availability"
+    ],
     faqs: [
       {
         question: "What happens to my playlists after cancellation?",
@@ -43,20 +120,45 @@ export const mockCompanies: Company[] = [
         question: "Can I switch to a free account?",
         answer: "Yes, after cancelling Premium you can continue using Spotify with a free, ad-supported account."
       }
-    ]
+    ],
+    required_information: {
+      fields: [
+        {
+          name: "email",
+          description: "Email address associated with your account",
+          required: true
+        },
+        {
+          name: "username",
+          description: "Your Spotify username",
+          required: true
+        }
+      ]
+    }
   },
   {
-    id: 3,
+    id: "323e4567-e89b-12d3-a456-426614174002",
+    created_at: "2024-01-01T00:00:00Z",
     name: "Amazon Prime",
-    industry: "E-commerce & Entertainment",
-    address: "410 Terry Ave. North, Seattle, WA 98109",
-    email: "prime@amazon.com",
-    phone: "1-888-280-4331",
-    cancellationRules: {
-      noticePeriod: "Cancel anytime with prorated refund for annual subscriptions",
-      requiredInfo: "Amazon account email and password",
-      confirmationProcess: "Immediate confirmation on website"
-    },
+    street: "410 Terry Ave. North",
+    address_line_2: null,
+    city: "Seattle",
+    state: "WA",
+    postal_code: "98109",
+    country: "USA",
+    cancellation_steps: [
+      "Sign in to Amazon",
+      "Go to Accounts & Lists",
+      "Select Prime Membership",
+      "Click End Membership",
+      "Confirm cancellation"
+    ],
+    issues: [
+      "Delivery problems",
+      "Prime Video issues",
+      "Membership benefits",
+      "Billing concerns"
+    ],
     faqs: [
       {
         question: "Will I lose access to Prime Video?",
@@ -66,30 +168,38 @@ export const mockCompanies: Company[] = [
         question: "What about pending Prime deliveries?",
         answer: "Any orders placed before cancellation will still be delivered with Prime shipping."
       }
-    ]
+    ],
+    required_information: {
+      fields: [
+        {
+          name: "email",
+          description: "Amazon account email",
+          required: true
+        },
+        {
+          name: "order_number",
+          description: "Recent order number for verification",
+          required: false
+        }
+      ]
+    }
   }
 ];
 
-export interface Company {
-  id: number;
-  name: string;
-  industry: string;
-  address: string;
-  email: string;
-  phone: string;
-  cancellationRules: {
-    noticePeriod: string;
-    requiredInfo: string;
-    confirmationProcess: string;
-  };
-  faqs: Array<{
-    question: string;
-    answer: string;
-  }>;
-}
-
-export interface FormData {
-  fullName: string;
-  address: string;
-  subscriptionId: string;
-}
+export const mockCategories: Category[] = [
+  {
+    id: "423e4567-e89b-12d3-a456-426614174003",
+    created_at: "2024-01-01T00:00:00Z",
+    name: "Streaming Services"
+  },
+  {
+    id: "523e4567-e89b-12d3-a456-426614174004",
+    created_at: "2024-01-01T00:00:00Z",
+    name: "E-commerce"
+  },
+  {
+    id: "623e4567-e89b-12d3-a456-426614174005",
+    created_at: "2024-01-01T00:00:00Z",
+    name: "Music"
+  }
+];

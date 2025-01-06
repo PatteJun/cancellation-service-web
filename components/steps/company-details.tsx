@@ -1,26 +1,26 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { AlertCircle, CheckCircle2, Info } from "lucide-react";
+import { Provider } from "@/lib/mock-data";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { CancellationSteps } from "./provider-details/cancellation-steps";
+import { RequiredInformation } from "./provider-details/required-information";
 
 interface CompanyDetailsProps {
-  company: Company;
+  company: Provider;
   onNext: () => void;
 }
 
 export default function CompanyDetails({ company, onNext }: CompanyDetailsProps) {
+  const fullAddress = [
+    company.street,
+    company.address_line_2,
+    company.city,
+    company.state,
+    company.postal_code,
+    company.country
+  ].filter(Boolean).join(", ");
+
   return (
     <div className="space-y-6">
       <Card>
@@ -32,58 +32,15 @@ export default function CompanyDetails({ company, onNext }: CompanyDetailsProps)
           <div className="space-y-4">
             <div>
               <h3 className="font-medium mb-2">Company Address</h3>
-              <p className="text-muted-foreground">
-                {company.address}
-              </p>
-            </div>
-            
-            <div>
-              <h3 className="font-medium mb-2">Contact Information</h3>
-              <p className="text-muted-foreground">
-                {company.email}<br />
-                {company.phone}
-              </p>
+              <p className="text-muted-foreground">{fullAddress}</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Cancellation Guidelines</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
-              <div>
-                <p className="font-medium">Notice Period</p>
-                <p className="text-sm text-muted-foreground">
-                  {company.cancellationRules.noticePeriod}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-3">
-              <Info className="h-5 w-5 text-blue-500 mt-0.5" />
-              <div>
-                <p className="font-medium">Required Information</p>
-                <p className="text-sm text-muted-foreground">
-                  {company.cancellationRules.requiredInfo}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-3">
-              <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
-              <div>
-                <p className="font-medium">Confirmation Process</p>
-                <p className="text-sm text-muted-foreground">
-                  {company.cancellationRules.confirmationProcess}
-                </p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <CancellationSteps steps={company.cancellation_steps} />
+      
+      <RequiredInformation fields={company.required_information.fields} />
 
       <Card>
         <CardHeader>
