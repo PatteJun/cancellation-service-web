@@ -4,25 +4,31 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
-import { Provider, FormData } from "@/lib/mock-data";
+import { Provider } from "@/lib/supabase/providers";
 import { FormFields } from "./letter-creation/form-fields";
 
 interface LetterCreationProps {
   company: Provider;
-  formData: FormData;
-  setFormData: (data: FormData) => void;
 }
 
-export default function LetterCreation({
-  company,
-  formData,
-  setFormData,
-}: LetterCreationProps) {
+export default function LetterCreation({ company }: LetterCreationProps) {
+  const [formData, setFormData] = useState<Record<string, string>>({});
   const [showPreview, setShowPreview] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const isFormValid = () => {
+    // Check default required fields
+    if (!formData.fullName || !formData.address) return false;
+
+    // Check provider-specific required fields
+    const requiredFields = company.required_information?.fields || [];
+    return requiredFields.every(field => 
+      !field.required || (formData[field.name] && formData[field.name].trim() !== '')
+    );
   };
 
   const generatePreview = () => {
@@ -35,6 +41,18 @@ export default function LetterCreation({
       company.country
     ].filter(Boolean).join(", ");
 
+    // Generate account details section with all provided fields
+    const accountDetails = [
+      `- Full Name: ${formData.fullName}`,
+      ...Object.entries(formData)
+        .filter(([key]) => key !== 'fullName' && key !== 'address')
+        .map(([key, value]) => 
+          `- ${key.split('_').map(word => 
+            word.charAt(0).toUpperCase() + word.slice(1)
+          ).join(' ')}: ${value}`
+        )
+    ].join('\n');
+
     return `
 ${formData.fullName}
 ${formData.address}
@@ -46,13 +64,12 @@ ${fullAddress}
 
 Dear Sir/Madam,
 
-Re: Cancellation of Subscription${formData.subscriptionId ? ` (ID: ${formData.subscriptionId})` : ''}
+Re: Cancellation of Subscription
 
 I am writing to formally request the cancellation of my subscription with ${company.name}. Please process this cancellation according to the terms of our agreement.
 
 Account Details:
-- Full Name: ${formData.fullName}
-${formData.subscriptionId ? `- Subscription ID: ${formData.subscriptionId}` : ''}
+${accountDetails}
 
 Please confirm receipt of this cancellation request and provide any necessary instructions for returning equipment or settling final payments.
 
@@ -86,12 +103,12 @@ ${formData.fullName}
         </div>
       </Card>
 
-      {(showPreview || Object.values(formData).every(Boolean)) && (
+      {(showPreview || isFormValid()) && (
         <Card className="p-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Preview</h3>
-              <Button onClick={handleDownload}>
+              <Button onClick={handleDownload} disabled={!isFormValid()}>
                 <Download className="mr-2 h-4 w-4" />
                 Download Letter
               </Button>

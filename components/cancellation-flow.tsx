@@ -5,17 +5,13 @@ import CompanySearch from "@/components/steps/company-search";
 import CompanyDetails from "@/components/steps/company-details";
 import LetterCreation from "@/components/steps/letter-creation";
 import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 const steps = ["Search Company", "Review Details", "Create Letter"];
 
 export default function CancellationFlow() {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const [formData, setFormData] = useState<FormData>({
-    fullName: "",
-    address: "",
-    subscriptionId: "",
-  });
 
   const progress = ((currentStep + 1) / steps.length) * 100;
 
@@ -26,9 +22,9 @@ export default function CancellationFlow() {
     }
   };
 
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+  const handleStepClick = (stepIndex: number) => {
+    if (stepIndex < currentStep) {
+      setCurrentStep(stepIndex);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
@@ -37,14 +33,21 @@ export default function CancellationFlow() {
     <div className="space-y-8">
       <div className="space-y-2">
         <Progress value={progress} className="h-2" />
-        <div className="flex justify-between text-sm text-muted-foreground">
+        <div className="flex justify-between text-sm">
           {steps.map((step, index) => (
-            <span
+            <button
               key={step}
-              className={index <= currentStep ? "text-primary" : ""}
+              onClick={() => handleStepClick(index)}
+              disabled={index > currentStep}
+              className={cn(
+                "transition-colors",
+                index <= currentStep ? "text-primary" : "text-muted-foreground",
+                index < currentStep && "hover:text-primary/80 cursor-pointer",
+                index > currentStep && "cursor-not-allowed"
+              )}
             >
               {step}
-            </span>
+            </button>
           ))}
         </div>
       </div>
@@ -62,18 +65,14 @@ export default function CancellationFlow() {
           <CompanyDetails company={selectedCompany} onNext={handleNext} />
         )}
         {currentStep === 2 && selectedCompany && (
-          <LetterCreation
-            company={selectedCompany}
-            formData={formData}
-            setFormData={setFormData}
-          />
+          <LetterCreation company={selectedCompany} />
         )}
       </div>
 
       <div className="flex justify-between pt-4 border-t">
         {currentStep > 0 && (
           <button
-            onClick={handleBack}
+            onClick={() => handleStepClick(currentStep - 1)}
             className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900"
           >
             Back
