@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/command";
 import { CategoryFilter } from "./provider-search/category-filter";
 import { ProviderItem } from "./provider-search/provider-item";
+import { NotificationDialog } from "./provider-search/notification-dialog";
 import { getProviders, getCategories } from "@/lib/supabase/providers";
 import type { Provider } from "@/lib/supabase/providers";
 import type { Database } from "@/lib/supabase/types";
@@ -109,9 +110,10 @@ export default function CompanySearch({ onSelectCompany }: CompanySearchProps) {
                 <div className="flex flex-col items-center py-6 text-center">
                   <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
                   <p className="text-lg font-medium mb-2">Provider not found</p>
-                  <p className="text-sm text-muted-foreground max-w-[15rem]">
+                  <p className="text-sm text-muted-foreground max-w-[15rem] mb-4">
                     We're adding new providers regularly. Thank you for your patience.
                   </p>
+                  <NotificationDialog searchQuery={searchQuery} />
                 </div>
               ) : (
                 "Start typing to search providers..."

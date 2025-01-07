@@ -46,6 +46,7 @@ export interface Database {
           search_query: string
           created_at: string
           count: number
+          notify_emails: string[]
         }
       }
     }
