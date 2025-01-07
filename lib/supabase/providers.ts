@@ -6,66 +6,94 @@ export type Provider = Database['public']['Tables']['providers']['Row'] & {
 };
 
 export async function getProviders(search?: string) {
-  console.log('Fetching providers with search:', search);
-  
-  let query = supabase
-    .from('providers')
-    .select(`
-      *,
-      provider_categories (
-        category_id,
-        categories (
-          id,
-          name,
-          icon_name
+  try {
+    let query = supabase
+      .from('providers')
+      .select(`
+        *,
+        provider_categories (
+          category_id,
+          categories (
+            id,
+            name,
+            icon_name
+          )
         )
-      )
-    `);
+      `);
 
-  if (search) {
-    query = query.ilike('name', `%${search}%`);
-  }
+    if (search) {
+      query = query.ilike('name', `%${search}%`);
+    }
 
-  const { data, error } = await query;
+    const { data, error } = await query;
 
-  if (error) {
+    if (error) throw error;
+
+    const mappedData = data?.map(provider => {
+      const categories = provider.provider_categories?.map(pc => ({
+        id: pc.categories.id,
+        name: pc.categories.name,
+        icon_name: pc.categories.icon_name
+      })) || [];
+      
+      return {
+        ...provider,
+        categories
+      };
+    }) || [];
+
+    if (search && mappedData.length === 0) {
+      await trackMissingProvider(search);
+    }
+
+    return mappedData as Provider[];
+  } catch (error) {
     console.error('Error fetching providers:', error);
-    throw new Error('Error fetching providers');
+    return [];
   }
-
-  console.log('Raw providers data:', data);
-
-  const mappedData = data?.map(provider => {
-    const categories = provider.provider_categories?.map(pc => ({
-      id: pc.categories.id,
-      name: pc.categories.name,
-      icon_name: pc.categories.icon_name
-    })) || [];
-    
-    console.log('Provider categories:', categories);
-    return {
-      ...provider,
-      categories
-    };
-  });
-
-  console.log('Mapped providers data:', mappedData);
-  return mappedData as Provider[];
 }
 
 export async function getCategories() {
-  console.log('Fetching categories');
-  
-  const { data, error } = await supabase
-    .from('categories')
-    .select('*')
-    .order('name');
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('name');
 
-  if (error) {
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
     console.error('Error fetching categories:', error);
-    throw new Error('Error fetching categories');
+    return [];
   }
+}
 
-  console.log('Categories data:', data);
-  return data;
+async function trackMissingProvider(searchQuery: string) {
+  try {
+    // First check if the record exists
+    const { data: existingData } = await supabase
+      .from('missing_providers')
+      .select('id, count')
+      .eq('search_query', searchQuery)
+      .maybeSingle();
+
+    if (existingData) {
+      // Update existing record
+      await supabase
+        .from('missing_providers')
+        .update({ count: (existingData.count || 0) + 1 })
+        .eq('id', existingData.id);
+    } else {
+      // Insert new record
+      await supabase
+        .from('missing_providers')
+        .insert([{ 
+          search_query: searchQuery,
+          count: 1
+        }]);
+    }
+  } catch (error) {
+    // Log error but don't throw to prevent disrupting the user experience
+    console.error('Error tracking missing provider:', error);
+  }
 }

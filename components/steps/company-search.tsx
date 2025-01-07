@@ -14,6 +14,7 @@ import { ProviderItem } from "./provider-search/provider-item";
 import { getProviders, getCategories } from "@/lib/supabase/providers";
 import type { Provider } from "@/lib/supabase/providers";
 import type { Database } from "@/lib/supabase/types";
+import { AlertCircle } from "lucide-react";
 
 type Category = Database["public"]["Tables"]["categories"]["Row"];
 
@@ -104,8 +105,16 @@ export default function CompanySearch({ onSelectCompany }: CompanySearchProps) {
                 "Loading..."
               ) : error ? (
                 <span className="text-destructive">{error}</span>
+              ) : searchQuery ? (
+                <div className="flex flex-col items-center py-6 text-center">
+                  <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-lg font-medium mb-2">Provider not found</p>
+                  <p className="text-sm text-muted-foreground max-w-[15rem]">
+                    We're adding new providers regularly. Thank you for your patience.
+                  </p>
+                </div>
               ) : (
-                "No providers found."
+                "Start typing to search providers..."
               )}
             </CommandEmpty>
             <CommandGroup heading="Providers">

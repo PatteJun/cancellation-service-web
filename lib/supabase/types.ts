@@ -40,6 +40,14 @@ export interface Database {
           category_id: string
         }
       }
+      missing_providers: {
+        Row: {
+          id: string
+          search_query: string
+          created_at: string
+          count: number
+        }
+      }
     }
   }
 }
