@@ -3,6 +3,7 @@
 import { Search } from "lucide-react";
 import { CommandItem } from "@/components/ui/command";
 import type { Provider } from "@/lib/supabase/providers";
+import * as Icons from "lucide-react";
 
 interface ProviderItemProps {
   provider: Provider;
@@ -10,6 +11,13 @@ interface ProviderItemProps {
 }
 
 export function ProviderItem({ provider, onSelect }: ProviderItemProps) {
+  // Get the first category's icon_name, fallback to 'search'
+  const iconName = provider.categories?.[0]?.icon_name || 'search';
+  
+  // Get the icon component from lucide-react
+  // @ts-ignore - We know these icons exist in the library
+  const Icon = Icons[iconName.charAt(0).toUpperCase() + iconName.slice(1)] || Search;
+
   return (
     <CommandItem
       key={provider.id}
@@ -19,7 +27,7 @@ export function ProviderItem({ provider, onSelect }: ProviderItemProps) {
     >
       <div className="flex items-center space-x-4">
         <div className="bg-muted p-2 rounded-full">
-          <Search className="h-4 w-4" />
+          <Icon className="h-4 w-4" />
         </div>
         <div>
           <p className="font-medium">{provider.name}</p>

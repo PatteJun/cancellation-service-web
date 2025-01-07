@@ -31,6 +31,7 @@ export interface Database {
           id: string
           created_at: string
           name: string
+          icon_name: string | null
         }
       }
       provider_categories: {

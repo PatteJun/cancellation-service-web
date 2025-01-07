@@ -2,7 +2,7 @@ import { supabase } from './client';
 import type { Database } from './types';
 
 export type Provider = Database['public']['Tables']['providers']['Row'] & {
-  categories?: Array<{ id: string; name: string }>;
+  categories?: Array<{ id: string; name: string; icon_name: string }>;
 };
 
 export async function getProviders(search?: string) {
@@ -16,7 +16,8 @@ export async function getProviders(search?: string) {
         category_id,
         categories (
           id,
-          name
+          name,
+          icon_name
         )
       )
     `);
@@ -37,7 +38,8 @@ export async function getProviders(search?: string) {
   const mappedData = data?.map(provider => {
     const categories = provider.provider_categories?.map(pc => ({
       id: pc.categories.id,
-      name: pc.categories.name
+      name: pc.categories.name,
+      icon_name: pc.categories.icon_name
     })) || [];
     
     console.log('Provider categories:', categories);
